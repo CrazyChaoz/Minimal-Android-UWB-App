@@ -60,6 +60,14 @@
             android:visibility="visible" />
 
         <TextView
+            android:id="@+id/textView8"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16px"
+            android:gravity="center"
+            android:text="Distance in Meters" />
+
+        <TextView
             android:id="@+id/distance_display"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -68,12 +76,26 @@
             android:textAppearance="@style/TextAppearance.AppCompat.Display3" />
 
         <TextView
+            android:id="@+id/textView9"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Azimuth Angle(-90;90)" />
+
+        <TextView
             android:id="@+id/azimuth_display"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="0"
             android:textAppearance="@style/TextAppearance.AppCompat.Display3" />
+
+        <TextView
+            android:id="@+id/textView10"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Elevation Angle (-90;90)" />
 
         <TextView
             android:id="@+id/elevation_display"

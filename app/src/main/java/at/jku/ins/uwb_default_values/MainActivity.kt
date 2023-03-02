@@ -144,9 +144,6 @@ class MainActivity : AppCompatActivity() {
             updateRateType = RangingParameters.RANGING_UPDATE_RATE_AUTOMATIC
         )
 
-        // Share the localAddress of the current session to the partner device.
-        //broadcastMyParameters(clientSession.localAddress)
-
         val sessionFlow = sessionScope.prepareSession(partnerParameters)
 
         // Start a coroutine scope that initiates ranging.
