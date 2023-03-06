@@ -11,18 +11,16 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.uwb.*
+import androidx.core.uwb.UwbComplexChannel
+import androidx.core.uwb.UwbManager
 import com.google.common.primitives.Shorts
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 class MainActivity : AppCompatActivity() {
 
-    private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)
     private val uwbManager = UwbManager.createInstance(this)
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -39,142 +37,140 @@ class MainActivity : AppCompatActivity() {
             ) != PackageManager.PERMISSION_GRANTED
         ) ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.UWB_RANGING), 123)
 
+
+        val context = this
+
         isControllerSwitch.setOnClickListener {
             preambleInputField.isEnabled = !isControllerSwitch.isChecked
-            coroutineScope.cancel()
+            try {
+                GlobalScope.cancel()
+                println("Cancelled a job")
+            } catch (e: IllegalStateException) {
+                println(e)
+            }
         }
 
-        getValuesButton.setOnClickListener {
-            if (isControllerSwitch.isChecked) {
-                /**
-                 * CONTROLLER / SERVER
-                 */
-                val context = this
-                coroutineScope.launch {
-                    val controllerSessionScope = uwbManager.controllerSessionScope()
+        CoroutineScope(Dispatchers.Main).launch{
+            val controllerSessionScope = uwbManager.controllerSessionScope()
+            val controlleeSessionScope = uwbManager.controleeSessionScope()
 
-                    AlertDialog.Builder(context).setTitle("CONTROLLER / SERVER").setMessage(
-                        "Your Address is: ${Shorts.fromByteArray(controllerSessionScope.localAddress.address)}\n\n" +
-                                "uwbComplexChannel channel is: ${controllerSessionScope.uwbComplexChannel.channel}\n\n" +
-                                "uwbComplexChannel preambleIndex is: ${controllerSessionScope.uwbComplexChannel.preambleIndex}"
-                    ).setNeutralButton("OK") { _, _ -> }
+            getValuesButton.setOnClickListener {
+                if (isControllerSwitch.isChecked) {
+                    AlertDialog
+                        .Builder(context)
+                        .setTitle("CONTROLLER / SERVER")
+                        .setMessage(
+                            "Your Address is: ${Shorts.fromByteArray(controllerSessionScope.localAddress.address)}\n\n" +
+                                    "uwbComplexChannel channel is: ${controllerSessionScope.uwbComplexChannel.channel}\n\n" +
+                                    "uwbComplexChannel preambleIndex is: ${controllerSessionScope.uwbComplexChannel.preambleIndex}"
+                        )
+                        .setNeutralButton("OK") { _, _ -> }
                         .create()
                         .show()
-
-                    communicateButton.setOnClickListener {
-                        try {
-                            val otherSideLocalAddress =
-                                Integer.parseInt(addressInputField.text.toString()).toShort()
-                            println("Other side address should be: $otherSideLocalAddress")
-
-                            coroutineScope.launch {
-                                startRanging(
-                                    otherSideLocalAddress,
-                                    controllerSessionScope.uwbComplexChannel,
-                                    controllerSessionScope
-                                )
-                            }
-                        } catch (_: NumberFormatException) {
-
-                        }
-                    }
-                }
-            } else {
-                /**
-                 * CONTROLLEE / CLIENT
-                 */
-                val context = this
-                coroutineScope.launch {
-                    // Initiate a session that will be valid for a single ranging session.
-                    val controleeSessionScope = uwbManager.controleeSessionScope()
-
-                    AlertDialog.Builder(context).setTitle("CONTROLLEE / CLIENT")
+                } else {
+                    AlertDialog
+                        .Builder(context)
+                        .setTitle("CONTROLLEE / CLIENT")
                         .setMessage(
-                            "Your Address is: ${Shorts.fromByteArray(controleeSessionScope.localAddress.address)}" +
-                                    "\n\nYour Device supports Distance: " + controleeSessionScope.rangingCapabilities.isDistanceSupported +
-                                    "\n\nYour Device supports Azimuth: " + controleeSessionScope.rangingCapabilities.isAzimuthalAngleSupported +
-                                    "\n\nYour Device supports Elevation: " + controleeSessionScope.rangingCapabilities.isElevationAngleSupported
+                            "Your Address is: ${Shorts.fromByteArray(controlleeSessionScope.localAddress.address)}" +
+                                    "\n\nYour Device supports Distance: " + controlleeSessionScope.rangingCapabilities.isDistanceSupported +
+                                    "\n\nYour Device supports Azimuth: " + controlleeSessionScope.rangingCapabilities.isAzimuthalAngleSupported +
+                                    "\n\nYour Device supports Elevation: " + controlleeSessionScope.rangingCapabilities.isElevationAngleSupported
                         )
-                        .setNeutralButton("OK") { _, _ -> }.create().show()
+                        .setNeutralButton("OK") { _, _ -> }
+                        .create()
+                        .show()
+                }
+            }
 
+            communicateButton.setOnClickListener {
+                if (isControllerSwitch.isChecked) {
+                    /**
+                     * CONTROLLER / SERVER
+                     */
+                    try {
+                        val otherSideLocalAddress =
+                            Integer.parseInt(addressInputField.text.toString()).toShort()
+                        println("Other side address should be: $otherSideLocalAddress")
 
+                        startRanging(
+                            otherSideLocalAddress,
+                            controllerSessionScope.uwbComplexChannel,
+                            controllerSessionScope
+                        ) {
+                            val distanceDisplay =
+                                findViewById<TextView>(R.id.distance_display)
+                            val elevationDisplay =
+                                findViewById<TextView>(R.id.elevation_display)
+                            val azimuthDisplay =
+                                findViewById<TextView>(R.id.azimuth_display)
 
-                    communicateButton.setOnClickListener {
-                        try {
-                            val otherSideLocalAddress =
-                                Integer.parseInt(addressInputField.text.toString()).toShort()
-                            println("Other side address should be: $otherSideLocalAddress")
+                            distanceDisplay.text = ((distanceDisplay.text.toString()
+                                .toFloat() + it.position.distance?.value!!) / 2).toString()
+                            elevationDisplay.text = ((elevationDisplay.text.toString()
+                                .toFloat() + it.position.elevation?.value!!) / 2).toString()
+                            azimuthDisplay.text = ((azimuthDisplay.text.toString()
+                                .toFloat() + it.position.azimuth?.value!!) / 2).toString()
 
-                            val channelPreamble =
-                                Integer.parseInt(preambleInputField.text.toString())
-                            println("channel preamble should be: $channelPreamble")
-
-                            coroutineScope.launch {
-                                startRanging(
-                                    otherSideLocalAddress,
-                                    UwbComplexChannel(9, channelPreamble),
-                                    controleeSessionScope
-                                )
-                            }
-                        } catch (_: NumberFormatException) {
-
+                            println("distance")
+                            println(it.position.distance?.value)
+                            println("azimuth")
+                            println(it.position.azimuth?.value)
+                            println("elevation")
+                            println(it.position.elevation?.value)
                         }
+                    } catch (e: NumberFormatException) {
+                        println("Caught Exception")
+                        println(e)
+                    }
+                } else {
+                    /**
+                     * CONTROLLEE / CLIENT
+                     */
+                    try {
+                        val otherSideLocalAddress =
+                            Integer.parseInt(addressInputField.text.toString()).toShort()
+                        println("Other side address should be: $otherSideLocalAddress")
+
+                        val channelPreamble =
+                            Integer.parseInt(preambleInputField.text.toString())
+                        println("channel preamble should be: $channelPreamble")
+
+                        startRanging(
+                            otherSideLocalAddress,
+                            UwbComplexChannel(9, channelPreamble),
+                            controlleeSessionScope
+                        ) {
+                            val distanceDisplay =
+                                findViewById<TextView>(R.id.distance_display)
+                            val elevationDisplay =
+                                findViewById<TextView>(R.id.elevation_display)
+                            val azimuthDisplay =
+                                findViewById<TextView>(R.id.azimuth_display)
+
+                            distanceDisplay.text = ((distanceDisplay.text.toString()
+                                .toFloat() + it.position.distance?.value!!) / 2).toString()
+                            elevationDisplay.text = ((elevationDisplay.text.toString()
+                                .toFloat() + it.position.elevation?.value!!) / 2).toString()
+                            azimuthDisplay.text = ((azimuthDisplay.text.toString()
+                                .toFloat() + it.position.azimuth?.value!!) / 2).toString()
+
+                            println("distance")
+                            println(it.position.distance?.value)
+                            println("azimuth")
+                            println(it.position.azimuth?.value)
+                            println("elevation")
+                            println(it.position.elevation?.value)
+                        }
+
+                    } catch (e: NumberFormatException) {
+                        println("Caught Exception")
+                        println(e)
                     }
                 }
             }
         }
     }
 
-    // The coroutineScope responsible for handling uwb ranging.
-    // This will be initialized when startRanging is called.
-    private suspend fun startRanging(
-        otherSideLocalAddress: Short,
-        channel: UwbComplexChannel,
-        sessionScope: UwbClientSessionScope
-    ) {
-        val partnerAddress = UwbAddress(Shorts.toByteArray(otherSideLocalAddress))
 
-        // Create the ranging parameters.
-        val partnerParameters = RangingParameters(
-            uwbConfigType = RangingParameters.UWB_CONFIG_ID_1,
-            sessionId = 12345,
-            sessionKeyInfo = null,
-            complexChannel = channel,
-            peerDevices = listOf(UwbDevice(partnerAddress)),
-            updateRateType = RangingParameters.RANGING_UPDATE_RATE_AUTOMATIC
-        )
-
-        val sessionFlow = sessionScope.prepareSession(partnerParameters)
-
-        // Start a coroutine scope that initiates ranging.
-        coroutineScope.launch {
-            sessionFlow.collect {
-                when (it) {
-                    is RangingResult.RangingResultPosition -> {
-
-                        val distanceDisplay = findViewById<TextView>(R.id.distance_display)
-                        val elevationDisplay = findViewById<TextView>(R.id.elevation_display)
-                        val azimuthDisplay = findViewById<TextView>(R.id.azimuth_display)
-
-                        distanceDisplay.text = ((distanceDisplay.text.toString()
-                            .toFloat() + it.position.distance?.value!!) / 2).toString()
-                        elevationDisplay.text = ((elevationDisplay.text.toString()
-                            .toFloat() + it.position.elevation?.value!!) / 2).toString()
-                        azimuthDisplay.text = ((azimuthDisplay.text.toString()
-                            .toFloat() + it.position.azimuth?.value!!) / 2).toString()
-
-                        println("distance")
-                        println(it.position.distance?.value)
-                        println("azimuth")
-                        println(it.position.azimuth?.value)
-                        println("elevation")
-                        println(it.position.elevation?.value)
-                    }
-                    is RangingResult.RangingResultPeerDisconnected -> {
-                        println("CONNECTION LOST")
-                    }
-                }
-            }
-        }
-    }
 }
