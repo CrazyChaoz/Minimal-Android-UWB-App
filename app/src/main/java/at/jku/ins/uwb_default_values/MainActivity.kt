@@ -15,9 +15,13 @@ import androidx.core.uwb.*
 import com.google.common.primitives.Shorts
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
+
+    private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)
+    private val uwbManager = UwbManager.createInstance(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,12 +34,14 @@ class MainActivity : AppCompatActivity() {
         val preambleInputField = findViewById<EditText>(R.id.preamble_input)
 
         if (ContextCompat.checkSelfPermission(
-                this, Manifest.permission.UWB_RANGING
+                this,
+                Manifest.permission.UWB_RANGING
             ) != PackageManager.PERMISSION_GRANTED
         ) ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.UWB_RANGING), 123)
 
         isControllerSwitch.setOnClickListener {
             preambleInputField.isEnabled = !isControllerSwitch.isChecked
+            coroutineScope.cancel()
         }
 
         getValuesButton.setOnClickListener {
@@ -43,17 +49,15 @@ class MainActivity : AppCompatActivity() {
                 /**
                  * CONTROLLER / SERVER
                  */
-                val scope = CoroutineScope(Dispatchers.Main)
                 val context = this
-                scope.launch {
-                    val uwbManager = UwbManager.createInstance(context)
+                coroutineScope.launch {
                     val controllerSessionScope = uwbManager.controllerSessionScope()
 
                     AlertDialog.Builder(context).setTitle("CONTROLLER / SERVER").setMessage(
                         "Your Address is: ${Shorts.fromByteArray(controllerSessionScope.localAddress.address)}\n\n" +
                                 "uwbComplexChannel channel is: ${controllerSessionScope.uwbComplexChannel.channel}\n\n" +
                                 "uwbComplexChannel preambleIndex is: ${controllerSessionScope.uwbComplexChannel.preambleIndex}"
-                    ).setNeutralButton("OK", { dialog, which -> })
+                    ).setNeutralButton("OK") { _, _ -> }
                         .create()
                         .show()
 
@@ -63,8 +67,7 @@ class MainActivity : AppCompatActivity() {
                                 Integer.parseInt(addressInputField.text.toString()).toShort()
                             println("Other side address should be: $otherSideLocalAddress")
 
-                            val scope2 = CoroutineScope(Dispatchers.Main)
-                            scope2.launch {
+                            coroutineScope.launch {
                                 startRanging(
                                     otherSideLocalAddress,
                                     controllerSessionScope.uwbComplexChannel,
@@ -80,10 +83,8 @@ class MainActivity : AppCompatActivity() {
                 /**
                  * CONTROLLEE / CLIENT
                  */
-                val scope = CoroutineScope(Dispatchers.Main)
                 val context = this
-                scope.launch {
-                    val uwbManager = UwbManager.createInstance(context)
+                coroutineScope.launch {
                     // Initiate a session that will be valid for a single ranging session.
                     val controleeSessionScope = uwbManager.controleeSessionScope()
 
@@ -94,7 +95,7 @@ class MainActivity : AppCompatActivity() {
                                     "\n\nYour Device supports Azimuth: " + controleeSessionScope.rangingCapabilities.isAzimuthalAngleSupported +
                                     "\n\nYour Device supports Elevation: " + controleeSessionScope.rangingCapabilities.isElevationAngleSupported
                         )
-                        .setNeutralButton("OK", { dialog, which -> }).create().show()
+                        .setNeutralButton("OK") { _, _ -> }.create().show()
 
 
 
@@ -108,8 +109,7 @@ class MainActivity : AppCompatActivity() {
                                 Integer.parseInt(preambleInputField.text.toString())
                             println("channel preamble should be: $channelPreamble")
 
-                            val scope2 = CoroutineScope(Dispatchers.Main)
-                            scope2.launch {
+                            coroutineScope.launch {
                                 startRanging(
                                     otherSideLocalAddress,
                                     UwbComplexChannel(9, channelPreamble),
@@ -127,7 +127,7 @@ class MainActivity : AppCompatActivity() {
 
     // The coroutineScope responsible for handling uwb ranging.
     // This will be initialized when startRanging is called.
-    suspend fun startRanging(
+    private suspend fun startRanging(
         otherSideLocalAddress: Short,
         channel: UwbComplexChannel,
         sessionScope: UwbClientSessionScope
@@ -147,18 +147,21 @@ class MainActivity : AppCompatActivity() {
         val sessionFlow = sessionScope.prepareSession(partnerParameters)
 
         // Start a coroutine scope that initiates ranging.
-        CoroutineScope(Dispatchers.Main.immediate).launch {
+        coroutineScope.launch {
             sessionFlow.collect {
                 when (it) {
                     is RangingResult.RangingResultPosition -> {
 
-                        val distance_display = findViewById<TextView>(R.id.distance_display)
-                        val elevation_display = findViewById<TextView>(R.id.elevation_display)
-                        val azimuth_display = findViewById<TextView>(R.id.azimuth_display)
+                        val distanceDisplay = findViewById<TextView>(R.id.distance_display)
+                        val elevationDisplay = findViewById<TextView>(R.id.elevation_display)
+                        val azimuthDisplay = findViewById<TextView>(R.id.azimuth_display)
 
-                        distance_display.text=((distance_display.text.toString().toFloat()+ it.position.distance?.value!!)/2).toString()
-                        elevation_display.text=((elevation_display.text.toString().toFloat()+ it.position.elevation?.value!!)/2).toString()
-                        azimuth_display.text=((azimuth_display.text.toString().toFloat()+ it.position.azimuth?.value!!)/2).toString()
+                        distanceDisplay.text = ((distanceDisplay.text.toString()
+                            .toFloat() + it.position.distance?.value!!) / 2).toString()
+                        elevationDisplay.text = ((elevationDisplay.text.toString()
+                            .toFloat() + it.position.elevation?.value!!) / 2).toString()
+                        azimuthDisplay.text = ((azimuthDisplay.text.toString()
+                            .toFloat() + it.position.azimuth?.value!!) / 2).toString()
 
                         println("distance")
                         println(it.position.distance?.value)
