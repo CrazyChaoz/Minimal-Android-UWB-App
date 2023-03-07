@@ -111,12 +111,14 @@ public class MainActivity extends AppCompatActivity {
                          * CONTROLLER / SERVER
                          */
                         uwbComplexChannel = ((UwbControllerSessionScope)currentUwbSessionScope.get()).getUwbComplexChannel();
-//                        if(rangingResultObservable.get()!=null){
-//                            if(lastControlee.intValue()!=otherSideLocalAddress){
-//                                controllerSessionScope.addControlee(partnerAddress);
-//                                return;
-//                            }
-//                        }
+                        if(rangingResultObservable.get()!=null){
+                            if(lastControlee.intValue()!=otherSideLocalAddress){
+                                //Here you would additional Controlees, if that were possible
+
+                                //controllerSessionScope.addControlee(partnerAddress);
+                                //return;
+                            }
+                        }
                     } else {
                         /**
                          * CONTROLLEE / CLIENT
