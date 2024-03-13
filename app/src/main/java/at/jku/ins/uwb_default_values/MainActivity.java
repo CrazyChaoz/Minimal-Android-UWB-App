@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                         uwbComplexChannel = new UwbComplexChannel(9, channelPreamble);
                     }
 
-                    RangingParameters partnerParameters = new RangingParameters(RangingParameters.UWB_CONFIG_ID_1, 12345, null, uwbComplexChannel, Collections.singletonList(new UwbDevice(partnerAddress)), RangingParameters.RANGING_UPDATE_RATE_AUTOMATIC);
+                    RangingParameters partnerParameters = new RangingParameters(RangingParameters.CONFIG_MULTICAST_DS_TWR, 12345, 0,null,null, uwbComplexChannel, Collections.singletonList(new UwbDevice(partnerAddress)), RangingParameters.RANGING_UPDATE_RATE_AUTOMATIC);
                     rangingResultObservable.set(UwbClientSessionScopeRx.rangingResultsObservable(currentUwbSessionScope.get(), partnerParameters).subscribe(rangingResult -> {
                                 if (rangingResult instanceof RangingResult.RangingResultPosition) {
                                     RangingResult.RangingResultPosition rangingResultPosition = (RangingResult.RangingResultPosition) rangingResult;
