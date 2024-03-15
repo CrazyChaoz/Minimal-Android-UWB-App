@@ -6,10 +6,10 @@
     flake-utils.url = "github:numtide/flake-utils";
     android.url = "github:tadfisher/android-nixpkgs";
     nix-filter.url = github:numtide/nix-filter;
-    gradle-2-mvn-repo.url = "github:CrazyChaoz/gradle2mvn";
+    gradle-dot-nix.url = "github:CrazyChaoz/gradle-dot-nix";
   };
 
-  outputs = { self, nixpkgs, flake-utils, android, nix-filter, gradle-2-mvn-repo}:
+  outputs = { self, nixpkgs, flake-utils, android, nix-filter, gradle-dot-nix}:
     let
         system = "x86_64-linux";
         inherit (nixpkgs) lib;
@@ -40,10 +40,10 @@
 
         nix-filter-lib = import nix-filter;
 
-        gradle-dependency-maven-repo = import gradle-2-mvn-repo {
+        gradle-init-script = (import gradle-dot-nix {
                                                inherit pkgs;
                                                gradle-verification-metadata-file = ./gradle/verification-metadata.xml;
-                                             };
+                                             }).gradle-init;
       in
       {
       packages.${system}.default =
@@ -65,7 +65,7 @@
             pkgs.jdk21
         ];
         buildPhase = ''
-          gradle build --info -I ${gradle-dependency-maven-repo.gradle-init} --offline --full-stacktrace -Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2
+          gradle build --info -I ${gradle-init-script} --offline --full-stacktrace -Dorg.gradle.project.android.aapt2FromMavenOverride=$ANDROID_HOME/build-tools/34.0.0/aapt2
         '';
         installPhase = ''
           mkdir -p $out

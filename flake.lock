@@ -96,21 +96,21 @@
         "type": "github"
       }
     },
-    "gradle-2-mvn-repo": {
+    "gradle-dot-nix": {
       "inputs": {
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1710369268,
-        "narHash": "sha256-0oO9aDvnWN7c9cAAFRsgvIxbFjE6DRF+kvBFAPUtOAg=",
+        "lastModified": 1710492294,
+        "narHash": "sha256-31La2u+o7dTCBFx4tolw1esNVwbbv5Dcm+ntVzTYzMs=",
         "owner": "CrazyChaoz",
-        "repo": "gradle2mvn",
-        "rev": "c18033183049cdb2f984f268e3b82ccdf4fe15bc",
+        "repo": "gradle-dot-nix",
+        "rev": "cf4c7cd3241d7a84d61625b72360b15376db87d6",
         "type": "github"
       },
       "original": {
         "owner": "CrazyChaoz",
-        "repo": "gradle2mvn",
+        "repo": "gradle-dot-nix",
         "type": "github"
       }
     },
@@ -147,11 +147,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1710313540,
-        "narHash": "sha256-HtTTpGe0azsEJVaT9RvbGFGB4idUneraLiUTxFb3ABM=",
+        "lastModified": 1710470187,
+        "narHash": "sha256-l2R47RqhdEUYrMrQjdFKhxtqprkJjIE89qJx3iEVv+U=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "4008381882569ab4773f2ba0d7b7bbde8f665672",
+        "rev": "f242fc768bdfcf91d9094a8a8f66551324bf1a47",
         "type": "github"
       },
       "original": {
@@ -178,7 +178,7 @@
       "inputs": {
         "android": "android",
         "flake-utils": "flake-utils_3",
-        "gradle-2-mvn-repo": "gradle-2-mvn-repo",
+        "gradle-dot-nix": "gradle-dot-nix",
         "nix-filter": "nix-filter",
         "nixpkgs": "nixpkgs_3"
       }
