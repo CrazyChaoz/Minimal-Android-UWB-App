@@ -101,11 +101,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1710532705,
-        "narHash": "sha256-Cf9wGSmj5MMh4cMG0Y0tViQHmUXAlw3HeBlXACUPibk=",
+        "lastModified": 1711026082,
+        "narHash": "sha256-/py+lkFxovem+9M0vuPhT/TEjzV75IDb38cAkAsnj+E=",
         "owner": "CrazyChaoz",
         "repo": "gradle-dot-nix",
-        "rev": "bf28938f5586e89d0be06d685189cc379a44e6b4",
+        "rev": "11dafa4c1fc15ab27f8a68eba0eb6cb9b680679d",
         "type": "github"
       },
       "original": {
@@ -147,11 +147,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1710503106,
-        "narHash": "sha256-WQenjcuNH9cnEYqh/PFxpmjK9PQnEPGt1Z7TCfYBhXs=",
+        "lastModified": 1710889954,
+        "narHash": "sha256-Pr6F5Pmd7JnNEMHHmspZ0qVqIBVxyZ13ik1pJtm2QXk=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "b1d47989352fcb722a1f19295a9461ed1ef8435a",
+        "rev": "7872526e9c5332274ea5932a0c3270d6e4724f3b",
         "type": "github"
       },
       "original": {
