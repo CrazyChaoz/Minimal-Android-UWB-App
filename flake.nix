@@ -1,5 +1,5 @@
 {
-  description = "Verifiable Credentials for Android, Reproducibly built with Nix";
+  description = "A minimalistic Android UWB App";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs";
