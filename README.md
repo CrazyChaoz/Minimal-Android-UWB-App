@@ -1,4 +1,4 @@
-# Minimal working UWB App
+# Minimal Working Android UWB App
 
 This is a minimal Android UWB App utilizing the currently available APIs (uwb:1.0.0-alpha08) for a very simple implementation.
 This Project is written in plain Java and utilizes the user as out-of-band mechanism for configuration.
