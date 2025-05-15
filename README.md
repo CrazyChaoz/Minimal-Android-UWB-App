@@ -8,7 +8,7 @@ This Project is written in plain Java and utilizes the user as out-of-band mecha
 2. Build the project
    - Using Nix (nix build)
    - Using Android Studio or Gradle CLI
-     - (OPTIONAL) You can delete the `gradle/verification-metadata.xml` file to disable dependency verification
+     - (OPTIONAL) You can add `--dependency-verification lenient` to the `gradle build` command to disable strict dependency verification checking.
 3. Install the app on 2 UWB enabled Android phones
 4. Open the app on both devices
 5. One device has to be the Controller
